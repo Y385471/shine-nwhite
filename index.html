@@ -1,33 +1,1033 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dental Chart - Treatment Planning</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+ 
+:root {
+  --bg: #0a0f1a;
+  --surface: #111827;
+  --surface2: #1a2235;
+  --border: #1f2d45;
+  --accent: #3b82f6;
+  --accent2: #06b6d4;
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --healthy: #10b981;
+  --decayed: #ef4444;
+  --filled: #3b82f6;
+  --missing: #475569;
+  --crowned: #f59e0b;
+  --treatment: #8b5cf6;
+}
+ 
+* { margin: 0; padding: 0; box-sizing: border-box; }
+ 
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 20px;
+}
+ 
+.app { max-width: 1100px; margin: 0 auto; }
+ 
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding: 20px 24px;
+  background: var(--surface);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+ 
+.header-left h1 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #3b82f6, #06b6d4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+ 
+.header-left p { font-size: 0.8rem; color: var(--text2); margin-top: 2px; }
+ 
+.patient-info {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+ 
+.patient-info input, .patient-info select {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 14px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  width: 150px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+ 
+.patient-info input:focus, .patient-info select:focus { border-color: var(--accent); }
+.patient-info input::placeholder { color: var(--text2); }
+.patient-info select option { background: var(--surface2); }
+ 
+.load-btn {
+  padding: 8px 16px;
+  background: var(--surface2);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  color: var(--accent);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+ 
+.load-btn:hover { background: var(--accent); color: white; }
+ 
+.chart-toggle {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  background: var(--surface);
+  padding: 6px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  width: fit-content;
+}
+ 
+.toggle-btn {
+  padding: 8px 24px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  background: transparent;
+  color: var(--text2);
+}
+ 
+.toggle-btn.active { background: var(--accent); color: white; }
+ 
+.legend {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+ 
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--text2);
+}
+ 
+.legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+ 
+.chart-container {
+  background: var(--surface);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  padding: 24px;
+  margin-bottom: 20px;
+}
+ 
+.chart-label {
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text2);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+ 
+.jaw {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+ 
+.midline {
+  width: 2px;
+  height: 60px;
+  background: var(--border);
+  margin: 0 8px;
+  border-radius: 2px;
+}
+ 
+.tooth {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.15s;
+  position: relative;
+}
+ 
+.tooth:hover { transform: translateY(-3px); }
+ 
+.tooth-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--text2);
+  margin-bottom: 3px;
+}
+ 
+.tooth-shape {
+  width: 36px;
+  height: 44px;
+  border-radius: 6px 6px 10px 10px;
+  border: 2px solid var(--border);
+  transition: all 0.2s;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.55rem;
+  font-weight: 700;
+  color: white;
+}
+ 
+.tooth-shape.molar { width: 42px; border-radius: 6px 6px 8px 8px; }
+.tooth-shape.healthy { background: #1a3a2a; border-color: var(--healthy); }
+.tooth-shape.decayed { background: #3a1a1a; border-color: var(--decayed); }
+.tooth-shape.filled { background: #1a2a3a; border-color: var(--filled); }
+.tooth-shape.missing { background: #1a2030; border-color: var(--missing); opacity: 0.4; }
+.tooth-shape.crowned { background: #3a2a1a; border-color: var(--crowned); }
+.tooth-shape.treatment { background: #2a1a3a; border-color: var(--treatment); }
+.tooth-shape.selected {
+  transform: scale(1.15);
+  box-shadow: 0 0 0 3px var(--accent), 0 0 20px rgba(59,130,246,0.4);
+  z-index: 10;
+}
+ 
+.tooth-indicator {
+  position: absolute;
+  top: -6px;
+  right: -4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid var(--bg);
+}
+ 
+.separator {
+  width: 100%;
+  height: 1px;
+  background: var(--border);
+  margin: 12px 0;
+  position: relative;
+}
+ 
+.separator::after {
+  content: 'MIDLINE';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%);
+  background: var(--surface);
+  padding: 0 8px;
+  font-size: 0.6rem;
+  color: var(--text2);
+  letter-spacing: 2px;
+}
+ 
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+ 
+.modal-overlay.show { display: flex; }
+ 
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  width: 520px;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 28px;
+}
+ 
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+ 
+.modal-title { font-size: 1.1rem; font-weight: 700; }
+ 
+.modal-tooth-id {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  border-radius: 6px;
+  color: var(--accent);
+}
+ 
+.close-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+ 
+.close-btn:hover { background: var(--border); color: var(--text); }
+ 
+.section-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text2);
+  margin-bottom: 10px;
+  margin-top: 20px;
+}
+ 
+.status-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+ 
+.status-btn {
+  padding: 10px 8px;
+  border-radius: 10px;
+  border: 2px solid var(--border);
+  background: var(--surface2);
+  color: var(--text2);
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-align: center;
+  transition: all 0.2s;
+}
+ 
+.status-btn:hover { border-color: var(--accent); color: var(--text); }
+.status-btn.selected-healthy { background: #1a3a2a; border-color: var(--healthy); color: var(--healthy); }
+.status-btn.selected-decayed { background: #3a1a1a; border-color: var(--decayed); color: var(--decayed); }
+.status-btn.selected-filled { background: #1a2a3a; border-color: var(--filled); color: var(--filled); }
+.status-btn.selected-missing { background: #1a2030; border-color: var(--missing); color: var(--missing); }
+.status-btn.selected-crowned { background: #3a2a1a; border-color: var(--crowned); color: var(--crowned); }
+.status-btn.selected-treatment { background: #2a1a3a; border-color: var(--treatment); color: var(--treatment); }
+ 
+.treatment-categories { display: flex; flex-direction: column; gap: 12px; }
+ 
+.category { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+ 
+.category-header {
+  padding: 10px 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+ 
+.category-header .dot { width: 8px; height: 8px; border-radius: 50%; }
+ 
+.category-body {
+  padding: 10px 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  border-top: 1px solid var(--border);
+}
+ 
+.treatment-chip {
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text2);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+ 
+.treatment-chip:hover { border-color: var(--accent); color: var(--text); }
+.treatment-chip.selected { background: var(--accent); border-color: var(--accent); color: white; }
+ 
+.what-done-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+ 
+.done-chip {
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text2);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+ 
+.done-chip.selected { background: var(--healthy); border-color: var(--healthy); color: white; }
+ 
+.notes-input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  resize: none;
+  outline: none;
+  margin-top: 8px;
+  transition: border-color 0.2s;
+}
+ 
+.notes-input:focus { border-color: var(--accent); }
+ 
+.save-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 24px;
+  transition: opacity 0.2s;
+}
+ 
+.save-btn:hover { opacity: 0.9; }
+ 
+.summary-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+}
+ 
+.summary-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text2);
+  margin-bottom: 16px;
+}
+ 
+.summary-list { display: flex; flex-direction: column; gap: 8px; }
+ 
+.summary-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--surface2);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  font-size: 0.83rem;
+}
+ 
+.summary-tooth {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--accent);
+  min-width: 40px;
+  font-weight: 600;
+}
+ 
+.summary-treatments { flex: 1; color: var(--text2); }
+.summary-done { color: var(--healthy); font-size: 0.75rem; }
+.empty-summary { text-align: center; color: var(--text2); font-size: 0.85rem; padding: 20px; }
+ 
+.submit-section { display: flex; gap: 12px; }
+ 
+.submit-btn {
+  flex: 1;
+  padding: 14px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+ 
+.submit-btn:hover { opacity: 0.9; }
+.submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+ 
+.clear-btn {
+  padding: 14px 20px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text2);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+ 
+.clear-btn:hover { border-color: var(--decayed); color: var(--decayed); }
+ 
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.3s;
+  z-index: 999;
+}
+ 
+.toast.success { background: var(--healthy); color: white; }
+.toast.error { background: var(--decayed); color: white; }
+.toast.show { opacity: 1; }
+ 
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--surface); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+ 
+<div class="app">
+ 
+  <div class="header">
+    <div class="header-left">
+      <h1>🦷 Dental Chart</h1>
+      <p>Treatment Planning & Diagnosis</p>
+    </div>
+    <div class="patient-info">
+      <select id="doctorName">
+        <option value="">Doctor Name</option>
+        <option>يوسف</option>
+        <option>عمرو</option>
+        <option>ساره</option>
+        <option>هدى</option>
+      </select>
+      <input type="text" id="patientId" placeholder="Patient ID" />
+      <input type="text" id="patientName" placeholder="Patient Name" />
+      <input type="text" id="visitId" placeholder="Visit ID" />
+      <button class="load-btn" onclick="loadPatient()">⬇ Load</button>
+    </div>
+  </div>
+ 
+  <div class="chart-toggle">
+    <button class="toggle-btn active" onclick="switchChart('adult')">Adult (FDI)</button>
+    <button class="toggle-btn" onclick="switchChart('pedo')">Pedo</button>
+  </div>
+ 
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div>Healthy</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>Decayed</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div>Filled</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#475569"></div>Missing</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>Crowned</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#8b5cf6"></div>Under Treatment</div>
+  </div>
+ 
+  <div class="chart-container">
+    <div class="chart-label">Upper Jaw</div>
+    <div class="jaw" id="upperJaw"></div>
+    <div class="separator"></div>
+    <div class="jaw" id="lowerJaw"></div>
+    <div class="chart-label" style="margin-top:12px">Lower Jaw</div>
+  </div>
+ 
+  <div class="summary-panel">
+    <div class="summary-title">Treatment Summary</div>
+    <div class="summary-list" id="summaryList">
+      <div class="empty-summary">No teeth charted yet. Click on a tooth to begin.</div>
+    </div>
+  </div>
+ 
+  <div class="submit-section">
+    <button class="submit-btn" id="submitBtn" onclick="submitData()">✓ Save to Google Sheets</button>
+    <button class="clear-btn" onclick="clearAll()">✕ Clear All</button>
+  </div>
+ 
+</div>
+ 
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Tooth <span id="modalToothNum"></span></div>
+        <div style="font-size:0.75rem; color:var(--text2); margin-top:2px" id="modalToothDesc"></div>
+      </div>
+      <div style="display:flex; gap:8px; align-items:center">
+        <div class="modal-tooth-id" id="modalToothId"></div>
+        <button class="close-btn" onclick="closeModal()">✕</button>
+      </div>
+    </div>
+ 
+    <div class="section-title">Tooth Status</div>
+    <div class="status-grid">
+      <button class="status-btn" onclick="setStatus('healthy')">🟢 Healthy</button>
+      <button class="status-btn" onclick="setStatus('decayed')">🔴 Decayed</button>
+      <button class="status-btn" onclick="setStatus('filled')">🔵 Filled</button>
+      <button class="status-btn" onclick="setStatus('missing')">⚫ Missing</button>
+      <button class="status-btn" onclick="setStatus('crowned')">🟡 Crowned</button>
+      <button class="status-btn" onclick="setStatus('treatment')">🟣 Under Tx</button>
+    </div>
+ 
+    <div class="section-title">Treatment Plan</div>
+    <div class="treatment-categories">
+ 
+      <div class="category">
+        <div class="category-header" onclick="toggleCategory('operative')">
+          <div class="dot" style="background:#3b82f6"></div>
+          <span style="color:#3b82f6">Operative / Restorative</span>
+        </div>
+        <div class="category-body" id="cat-operative">
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Class I')">Class I</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Class II')">Class II</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Class III')">Class III</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Class IV')">Class IV</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Class V')">Class V</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'MOD')">MOD</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'MO')">MO</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'DO')">DO</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'OB')">OB</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'OL')">OL</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Composite')">Composite</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Amalgam')">Amalgam</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'GIC')">GIC</span>
+        </div>
+      </div>
+ 
+      <div class="category">
+        <div class="category-header" onclick="toggleCategory('endo')">
+          <div class="dot" style="background:#ef4444"></div>
+          <span style="color:#ef4444">Endodontics</span>
+        </div>
+        <div class="category-body" id="cat-endo">
+          <span class="treatment-chip" onclick="toggleTreatment(this,'RCT')">RCT</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Pulpitis')">Pulpitis</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Pulp Necrosis')">Pulp Necrosis</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Apical Abscess')">Apical Abscess</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Retreatment')">Retreatment</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Pulpotomy')">Pulpotomy</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Pulpectomy')">Pulpectomy</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Apicectomy')">Apicectomy</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Ca(OH)₂')">Ca(OH)₂</span>
+        </div>
+      </div>
+ 
+      <div class="category">
+        <div class="category-header" onclick="toggleCategory('prosth')">
+          <div class="dot" style="background:#f59e0b"></div>
+          <span style="color:#f59e0b">Prosthetics / Crown</span>
+        </div>
+        <div class="category-body" id="cat-prosth">
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Full Crown')">Full Crown</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Veneer')">Veneer</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Onlay')">Onlay</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Inlay')">Inlay</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Zirconia')">Zirconia</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'PFM')">PFM</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Post & Core')">Post & Core</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'SS Crown')">SS Crown</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Temp Crown')">Temp Crown</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Crown Cement')">Crown Cement</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Bridge')">Bridge</span>
+        </div>
+      </div>
+ 
+      <div class="category">
+        <div class="category-header" onclick="toggleCategory('surgical')">
+          <div class="dot" style="background:#6b7280"></div>
+          <span style="color:#9ca3af">Surgical / Extraction</span>
+        </div>
+        <div class="category-body" id="cat-surgical">
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Simple Extraction')">Simple Extraction</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Surgical Extraction')">Surgical Extraction</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Impacted Tooth')">Impacted Tooth</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Remaining Root')">Remaining Root</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Socket Irrigation')">Socket Irrigation</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Suture')">Suture</span>
+        </div>
+      </div>
+ 
+      <div class="category">
+        <div class="category-header" onclick="toggleCategory('implant')">
+          <div class="dot" style="background:#10b981"></div>
+          <span style="color:#10b981">Implant</span>
+        </div>
+        <div class="category-body" id="cat-implant">
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Implant Placement')">Implant Placement</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Implant Crown')">Implant Crown</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Bone Graft')">Bone Graft</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Sinus Lift')">Sinus Lift</span>
+        </div>
+      </div>
+ 
+      <div class="category">
+        <div class="category-header" onclick="toggleCategory('other')">
+          <div class="dot" style="background:#a855f7"></div>
+          <span style="color:#a855f7">Other</span>
+        </div>
+        <div class="category-body" id="cat-other">
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Scaling & Polishing')">Scaling & Polishing</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Bleaching')">Bleaching</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Fluoride')">Fluoride</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Splinting')">Splinting</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Xray')">Xray</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Temp Filling')">Temp Filling</span>
+          <span class="treatment-chip" onclick="toggleTreatment(this,'Dressing')">Dressing</span>
+        </div>
+      </div>
+ 
+    </div>
+ 
+    <div class="section-title">What Done This Visit</div>
+    <div class="what-done-chips" id="whatDoneChips">
+      <div style="font-size:0.8rem; color:var(--text2)">Select treatment plan items first</div>
+    </div>
+ 
+    <div class="section-title">Notes</div>
+    <textarea class="notes-input" id="toothNotes" rows="2" placeholder="Additional notes..."></textarea>
+ 
+    <button class="save-btn" onclick="saveTooth()">Save Tooth</button>
+  </div>
+</div>
+ 
+<div class="toast" id="toast"></div>
+ 
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw47K9JF5sX6cfQnUhH_g3wVs9Y8JqJA3VFVvCeI4tta_l61CBeUEH8kIuaiLmDjimEBw/exec';
+ 
+const toothData = {};
+let currentTooth = null;
+let currentChart = 'adult';
+ 
+const adultUpperRight = [18,17,16,15,14,13,12,11];
+const adultUpperLeft  = [21,22,23,24,25,26,27,28];
+const adultLowerRight = [48,47,46,45,44,43,42,41];
+const adultLowerLeft  = [31,32,33,34,35,36,37,38];
+const pedoUpperRight  = [55,54,53,52,51];
+const pedoUpperLeft   = [61,62,63,64,65];
+const pedoLowerRight  = [85,84,83,82,81];
+const pedoLowerLeft   = [71,72,73,74,75];
+ 
+const toothDescriptions = {
+  18:'3rd Molar',17:'2nd Molar',16:'1st Molar',15:'2nd Premolar',14:'1st Premolar',
+  13:'Canine',12:'Lateral Incisor',11:'Central Incisor',
+  21:'Central Incisor',22:'Lateral Incisor',23:'Canine',24:'1st Premolar',
+  25:'2nd Premolar',26:'1st Molar',27:'2nd Molar',28:'3rd Molar',
+  48:'3rd Molar',47:'2nd Molar',46:'1st Molar',45:'2nd Premolar',44:'1st Premolar',
+  43:'Canine',42:'Lateral Incisor',41:'Central Incisor',
+  31:'Central Incisor',32:'Lateral Incisor',33:'Canine',34:'1st Premolar',
+  35:'2nd Premolar',36:'1st Molar',37:'2nd Molar',38:'3rd Molar',
+  55:'2nd Molar (E)',54:'1st Molar (D)',53:'Canine (C)',52:'Lateral (B)',51:'Central (A)',
+  61:'Central (A)',62:'Lateral (B)',63:'Canine (C)',64:'1st Molar (D)',65:'2nd Molar (E)',
+  85:'2nd Molar (E)',84:'1st Molar (D)',83:'Canine (C)',82:'Lateral (B)',81:'Central (A)',
+  71:'Central (A)',72:'Lateral (B)',73:'Canine (C)',74:'1st Molar (D)',75:'2nd Molar (E)',
+};
+ 
+const molars = [16,17,18,26,27,28,36,37,38,46,47,48,55,65,75,85];
+ 
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+ 
+function createTooth(num) {
+  const data = toothData[num] || {};
+  const div = document.createElement('div');
+  div.className = 'tooth';
+  div.id = `tooth-${num}`;
+ 
+  const numDiv = document.createElement('div');
+  numDiv.className = 'tooth-num';
+  numDiv.textContent = num;
+ 
+  const shape = document.createElement('div');
+  shape.className = `tooth-shape ${molars.includes(num) ? 'molar' : ''} ${data.status || ''}`;
+ 
+  if (data.treatments && data.treatments.length > 0) {
+    const ind = document.createElement('div');
+    ind.className = 'tooth-indicator';
+    ind.style.background = '#8b5cf6';
+    shape.appendChild(ind);
+  }
+ 
+  div.appendChild(numDiv);
+  div.appendChild(shape);
+  div.onclick = () => openModal(num);
+  return div;
+}
+ 
+function renderChart(type) {
+  const upper = document.getElementById('upperJaw');
+  const lower = document.getElementById('lowerJaw');
+  upper.innerHTML = '';
+  lower.innerHTML = '';
+ 
+  let uR, uL, lR, lL;
+  if (type === 'adult') { uR=adultUpperRight; uL=adultUpperLeft; lR=adultLowerRight; lL=adultLowerLeft; }
+  else { uR=pedoUpperRight; uL=pedoUpperLeft; lR=pedoLowerRight; lL=pedoLowerLeft; }
+ 
+  uR.forEach(n => upper.appendChild(createTooth(n)));
+  const m1 = document.createElement('div'); m1.className = 'midline'; upper.appendChild(m1);
+  uL.forEach(n => upper.appendChild(createTooth(n)));
+ 
+  lR.forEach(n => lower.appendChild(createTooth(n)));
+  const m2 = document.createElement('div'); m2.className = 'midline'; lower.appendChild(m2);
+  lL.forEach(n => lower.appendChild(createTooth(n)));
+}
+ 
+function switchChart(type) {
+  currentChart = type;
+  document.querySelectorAll('.toggle-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', (type==='adult'&&i===0)||(type==='pedo'&&i===1));
+  });
+  renderChart(type);
+}
+ 
+function openModal(num) {
+  currentTooth = num;
+  const data = toothData[num] || {};
+ 
+  document.getElementById('modalToothNum').textContent = num;
+  document.getElementById('modalToothDesc').textContent = toothDescriptions[num] || '';
+  document.getElementById('modalToothId').textContent = `FDI ${num}`;
+  document.getElementById('toothNotes').value = data.notes || '';
+ 
+  document.querySelectorAll('.status-btn').forEach(b => {
+    b.className = 'status-btn';
+    if (data.status && b.textContent.toLowerCase().includes(data.status)) {
+      b.classList.add(`selected-${data.status}`);
+    }
+  });
+ 
+  document.querySelectorAll('.treatment-chip').forEach(c => {
+    c.classList.remove('selected');
+    if (data.treatments && data.treatments.includes(c.textContent)) c.classList.add('selected');
+  });
+ 
+  updateWhatDoneChips(data.treatments || [], data.done || []);
+  document.getElementById('modalOverlay').classList.add('show');
+}
+ 
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('show');
+  currentTooth = null;
+}
+ 
+function setStatus(status) {
+  if (!currentTooth) return;
+  if (!toothData[currentTooth]) toothData[currentTooth] = {};
+  toothData[currentTooth].status = status;
+  document.querySelectorAll('.status-btn').forEach(b => b.className = 'status-btn');
+  event.target.classList.add(`selected-${status}`);
+}
+ 
+function toggleTreatment(el, name) {
+  if (!currentTooth) return;
+  if (!toothData[currentTooth]) toothData[currentTooth] = {};
+  if (!toothData[currentTooth].treatments) toothData[currentTooth].treatments = [];
+  el.classList.toggle('selected');
+  const t = toothData[currentTooth].treatments;
+  const i = t.indexOf(name);
+  if (i > -1) t.splice(i, 1); else t.push(name);
+  updateWhatDoneChips(t, toothData[currentTooth].done || []);
+}
+ 
+function updateWhatDoneChips(treatments, done) {
+  const container = document.getElementById('whatDoneChips');
+  container.innerHTML = '';
+  if (!treatments.length) {
+    container.innerHTML = '<div style="font-size:0.8rem;color:var(--text2)">Select treatment plan items first</div>';
+    return;
+  }
+  treatments.forEach(t => {
+    const chip = document.createElement('span');
+    chip.className = `done-chip ${done.includes(t) ? 'selected' : ''}`;
+    chip.textContent = t;
+    chip.onclick = () => {
+      chip.classList.toggle('selected');
+      if (!toothData[currentTooth].done) toothData[currentTooth].done = [];
+      const d = toothData[currentTooth].done;
+      const i = d.indexOf(t);
+      if (i > -1) d.splice(i, 1); else d.push(t);
+    };
+    container.appendChild(chip);
+  });
+}
+ 
+function toggleCategory(id) {
+  const body = document.getElementById(`cat-${id}`);
+  body.style.display = body.style.display === 'none' ? 'flex' : 'none';
+}
+ 
+function saveTooth() {
+  if (!currentTooth) return;
+  if (!toothData[currentTooth]) toothData[currentTooth] = {};
+  toothData[currentTooth].notes = document.getElementById('toothNotes').value;
+ 
+  const shape = document.querySelector(`#tooth-${currentTooth} .tooth-shape`);
+  if (shape) {
+    shape.className = `tooth-shape ${molars.includes(currentTooth) ? 'molar' : ''} ${toothData[currentTooth].status || ''}`;
+    const existing = shape.querySelector('.tooth-indicator');
+    if (existing) existing.remove();
+    if (toothData[currentTooth].treatments && toothData[currentTooth].treatments.length > 0) {
+      const ind = document.createElement('div');
+      ind.className = 'tooth-indicator';
+      ind.style.background = '#8b5cf6';
+      shape.appendChild(ind);
+    }
+  }
+ 
+  updateSummary();
+  closeModal();
+  showToast(`Tooth ${currentTooth} saved ✓`);
+}
+ 
+function updateSummary() {
+  const list = document.getElementById('summaryList');
+  const entries = Object.entries(toothData).filter(([,d]) => d.status || (d.treatments && d.treatments.length > 0));
+ 
+  if (!entries.length) {
+    list.innerHTML = '<div class="empty-summary">No teeth charted yet. Click on a tooth to begin.</div>';
+    return;
+  }
+ 
+  list.innerHTML = entries.map(([num, data]) => `
+    <div class="summary-item">
+      <div class="summary-tooth">T${num}</div>
+      <div style="flex:1">
+        <div style="font-size:0.75rem;color:var(--text2);margin-bottom:2px">
+          ${toothDescriptions[num]||''} ${data.status ? `• <span style="color:${getStatusColor(data.status)}">${data.status}</span>` : ''}
+        </div>
+        <div class="summary-treatments">${data.treatments&&data.treatments.length ? 'Plan: '+data.treatments.join(', ') : 'No treatment planned'}</div>
+        ${data.done&&data.done.length ? `<div class="summary-done">✓ Done: ${data.done.join(', ')}</div>` : ''}
+        ${data.notes ? `<div style="font-size:0.73rem;color:var(--text2);margin-top:2px;font-style:italic">${data.notes}</div>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+ 
+function getStatusColor(s) {
+  return {healthy:'#10b981',decayed:'#ef4444',filled:'#3b82f6',missing:'#475569',crowned:'#f59e0b',treatment:'#8b5cf6'}[s] || '#fff';
+}
+ 
+async function loadPatient() {
+  const patientId = document.getElementById('patientId').value.trim();
+  if (!patientId) { showToast('Enter Patient ID first', 'error'); return; }
+ 
+  showToast('Loading patient data...');
+ 
+  try {
+    const res = await fetch(`${SCRIPT_URL}?patientId=${patientId}`);
+    const json = await res.json();
+ 
+    if (!json.success || !json.data.length) {
+      showToast('No previous data found for this patient', 'error');
+      return;
+    }
+ 
+    // Clear existing
+    Object.keys(toothData).forEach(k => delete toothData[k]);
+ 
+    json.data.forEach(row => {
+      const num = parseInt(row.tooth);
+      if (!toothData[num]) toothData[num] = { treatments: [], done: [] };
+      toothData[num].status = row.status;
+      toothData[num].treatments = row.treatments ? row.treatments.split('; ').filter(Boolean) : [];
+      toothData[num].done = row.done ? row.done.split('; ').filter(Boolean) : [];
+      toothData[num].notes = row.notes;
+    });
+ 
+    // Set patient name from first row
+    if (json.data[0].patientName) {
+      document.getElementById('patientName').value = json.data[0].patientName;
+    }
+ 
+    renderChart(currentChart);
+    updateSummary();
+    showToast(`Loaded ${json.data.length} teeth for ${patientId} ✓`);
+ 
+  } catch(err) {
+    showToast('Error loading data', 'error');
+  }
+}
+ 
 async function submitData() {
   const doctor = document.getElementById('doctorName').value;
   const patientId = document.getElementById('patientId').value.trim();
   const patientName = document.getElementById('patientName').value.trim();
   const visitId = document.getElementById('visitId').value.trim();
-
+ 
   if (!doctor || !patientId || !patientName || !visitId) {
     showToast('Please fill all fields first', 'error');
     return;
   }
-
-  const entries = Object.entries(toothData)
-    .filter(([,d]) => d.status || (d.treatments && d.treatments.length > 0));
-
+ 
+  const entries = Object.entries(toothData).filter(([,d]) => d.status || (d.treatments && d.treatments.length > 0));
   if (!entries.length) {
     showToast('Chart at least one tooth first', 'error');
     return;
   }
-
+ 
   const btn = document.getElementById('submitBtn');
   btn.disabled = true;
   btn.textContent = 'Saving...';
-
+ 
   const payload = {
     doctor,
     patientId,
     patientName,
     visitId,
     teeth: entries.map(([num, data]) => ({
-      num: String(num),
+      num,
       desc: toothDescriptions[num] || '',
       status: data.status || '',
       treatments: (data.treatments || []).join('; '),
@@ -35,31 +1035,34 @@ async function submitData() {
       notes: data.notes || ''
     }))
   };
-
+ 
   try {
-    const res = await fetch(SCRIPT_URL, {
+    await fetch(SCRIPT_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'text/plain' // 🔥 مهم جدًا مع Apps Script أحيانًا
-      },
       body: JSON.stringify(payload)
     });
-
-    const resultText = await res.text();
-    const result = JSON.parse(resultText);
-
-    if (result.success) {
-      showToast(`✓ Saved ${entries.length} teeth to Google Sheets!`);
-    } else {
-      showToast('Error: ' + (result.error || 'Unknown error'), 'error');
-      console.log(result);
-    }
-
-  } catch (err) {
-    console.log(err);
-    showToast('Network error saving data', 'error');
+    showToast(`✓ Saved ${entries.length} teeth to Google Sheets!`);
+  } catch(err) {
+    showToast('Error saving data', 'error');
   }
-
+ 
   btn.disabled = false;
   btn.textContent = '✓ Save to Google Sheets';
 }
+ 
+function clearAll() {
+  if (!confirm('Clear all charted teeth?')) return;
+  Object.keys(toothData).forEach(k => delete toothData[k]);
+  document.getElementById('patientId').value = '';
+  document.getElementById('patientName').value = '';
+  document.getElementById('visitId').value = '';
+  document.getElementById('doctorName').value = '';
+  renderChart(currentChart);
+  updateSummary();
+}
+ 
+renderChart('adult');
+</script>
+</body>
+</html>
+ 
