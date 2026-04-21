@@ -9,8 +9,9 @@ async function submitData() {
     return;
   }
 
-  const entries = Object.entries(toothData).filter(([,d]) => d.status || (d.treatments && d.treatments.length > 0));
-  
+  const entries = Object.entries(toothData)
+    .filter(([,d]) => d.status || (d.treatments && d.treatments.length > 0));
+
   if (!entries.length) {
     showToast('Chart at least one tooth first', 'error');
     return;
@@ -26,7 +27,7 @@ async function submitData() {
     patientName,
     visitId,
     teeth: entries.map(([num, data]) => ({
-      num,
+      num: String(num),
       desc: toothDescriptions[num] || '',
       status: data.status || '',
       treatments: (data.treatments || []).join('; '),
@@ -39,20 +40,23 @@ async function submitData() {
     const res = await fetch(SCRIPT_URL, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'text/plain' // 🔥 مهم جدًا مع Apps Script أحيانًا
       },
       body: JSON.stringify(payload)
     });
 
-    const result = await res.json();
+    const resultText = await res.text();
+    const result = JSON.parse(resultText);
 
     if (result.success) {
       showToast(`✓ Saved ${entries.length} teeth to Google Sheets!`);
     } else {
-      showToast('Error: ' + result.error, 'error');
+      showToast('Error: ' + (result.error || 'Unknown error'), 'error');
+      console.log(result);
     }
 
   } catch (err) {
+    console.log(err);
     showToast('Network error saving data', 'error');
   }
 
